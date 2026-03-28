@@ -76,6 +76,7 @@ PORT=3001
 CORS_ORIGIN=http://localhost:3000
 RPC_URL=http://127.0.0.1:8545
 CHAIN_ID=31337
+DEPLOYER_PRIVATE_KEY=0x...
 AGENT_NFT_ADDRESS=0x...
 AGENT_MARKETPLACE_ADDRESS=0x...
 FINALIZER_PRIVATE_KEY=0x...
@@ -106,9 +107,42 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 
 ## Contract Deployment
 
-This repo does not include a Foundry script dependency like `forge-std`, so the simplest deployment path is `forge create`.
+Preferred path from this repo:
 
-Deploy `AgentNFT` first:
+```bash
+cd backend
+npm run deploy:contracts
+```
+
+The deploy script uses the existing Foundry build artifacts in `contracts/out`, deploys `AgentNFT`, deploys `AgentMarketplace`, calls:
+
+1. `setAuthorizedUsageRecorder(marketplaceAddress)` on `AgentNFT`
+2. `setFinalizer(finalizerAddress)` on `AgentMarketplace`
+
+It then writes deployment records to:
+
+- `contracts/deployments/latest.json`
+- `contracts/deployments/<chainId>.json`
+
+It also prints the exact `backend/.env` and `frontend/.env.local` values to use after deployment.
+
+Required env for the deploy script:
+
+```env
+RPC_URL=http://127.0.0.1:8545
+DEPLOYER_PRIVATE_KEY=0x...
+FINALIZER_PRIVATE_KEY=0x...
+```
+
+Optional deploy overrides:
+
+```env
+DEPLOY_RPC_URL=http://127.0.0.1:8545
+AGENT_NFT_NAME=Monad Agents
+AGENT_NFT_SYMBOL=AGENT
+```
+
+Fallback manual path if you prefer Foundry CLI:
 
 ```bash
 cd contracts
@@ -116,35 +150,11 @@ forge create src/AgentNFT.sol:AgentNFT \
   --rpc-url $RPC_URL \
   --private-key $DEPLOYER_PRIVATE_KEY \
   --constructor-args "Monad Agents" "AGENT"
-```
 
-Deploy `AgentMarketplace` with the deployed NFT address:
-
-```bash
 forge create src/AgentMarketplace.sol:AgentMarketplace \
   --rpc-url $RPC_URL \
   --private-key $DEPLOYER_PRIVATE_KEY \
   --constructor-args $AGENT_NFT_ADDRESS
-```
-
-After deployment:
-1. call `setAuthorizedUsageRecorder(marketplaceAddress)` on `AgentNFT`
-2. call `setFinalizer(finalizerAddress)` on `AgentMarketplace`
-
-These can be done from `cast send` or a block explorer UI.
-
-Example:
-
-```bash
-cast send $AGENT_NFT_ADDRESS \
-  "setAuthorizedUsageRecorder(address)" $AGENT_MARKETPLACE_ADDRESS \
-  --rpc-url $RPC_URL \
-  --private-key $DEPLOYER_PRIVATE_KEY
-
-cast send $AGENT_MARKETPLACE_ADDRESS \
-  "setFinalizer(address)" $FINALIZER_ADDRESS \
-  --rpc-url $RPC_URL \
-  --private-key $DEPLOYER_PRIVATE_KEY
 ```
 
 ## Seeding Demo Agents
@@ -261,7 +271,7 @@ Live demo flow:
 - no indexing layer beyond direct chain reads
 - no decentralized inference
 - no production-grade auth or observability
-- no deploy script helper beyond direct `forge create` and `cast send`
+- deploy helper covers deployment and initial contract wiring, but seeding is still manual
 - frontend currently assumes wallet extension availability through injected providers
 
 ## Why This Scope Is Correct

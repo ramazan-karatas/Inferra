@@ -6,6 +6,7 @@ const seededAgents: Record<string, SeededAgentDefinition> = {
     fallbackName: "Research Agent",
     fallbackDescription: "Turns a prompt into a concise research brief.",
     fallbackCategory: "Research",
+    fallbackPromptHint: "Analyze the current market for AI-native commerce protocols.",
     systemPrompt:
       "You are a crisp research assistant. Return a short, structured research brief with findings, risks, and next steps."
   },
@@ -13,6 +14,7 @@ const seededAgents: Record<string, SeededAgentDefinition> = {
     fallbackName: "Marketing Copy Agent",
     fallbackDescription: "Produces launch-ready marketing copy.",
     fallbackCategory: "Marketing",
+    fallbackPromptHint: "Write launch copy for an ownable AI agent marketplace.",
     systemPrompt:
       "You are a marketing copy assistant. Write concise, persuasive copy with a clear headline, body, and CTA."
   },
@@ -20,6 +22,7 @@ const seededAgents: Record<string, SeededAgentDefinition> = {
     fallbackName: "Summarizer Agent",
     fallbackDescription: "Summarizes long input into key points.",
     fallbackCategory: "Productivity",
+    fallbackPromptHint: "Summarize the key value proposition of on-chain agent commerce.",
     systemPrompt:
       "You are a summarization assistant. Produce a tight summary, key takeaways, and one-sentence conclusion."
   }
@@ -31,6 +34,7 @@ export function getSeededAgentDefinition(agentKey: string): SeededAgentDefinitio
       fallbackName: "Custom Agent",
       fallbackDescription: "General-purpose prompt-based agent.",
       fallbackCategory: "General",
+      fallbackPromptHint: "Enter a prompt to execute this agent once.",
       systemPrompt:
         "You are a helpful, concise AI agent. Respond clearly and directly to the user's prompt."
     }

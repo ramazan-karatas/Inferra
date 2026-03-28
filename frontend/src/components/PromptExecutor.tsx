@@ -41,6 +41,7 @@ export function PromptExecutor({
   }, [initialAgent]);
 
   const isOwner = address?.toLowerCase() === agent.owner.toLowerCase();
+  const isDemoMode = frontendConfig.demoMode;
 
   async function refreshAgent() {
     const nextAgent = await fetchAgent(agent.tokenId);
@@ -102,33 +103,36 @@ export function PromptExecutor({
   }
 
   async function handleExecute() {
-    if (!address) {
+    if (!isDemoMode && !address) {
       setStatus("Connect a wallet before executing.");
       return;
     }
-    if (!entitlementId) {
+    if (!isDemoMode && !entitlementId) {
       setStatus("Pay for usage first so the frontend can track the entitlement.");
       return;
     }
 
     try {
       setPending(true);
-      setStatus("Signing execution request...");
+      setStatus(isDemoMode ? "Running demo execution..." : "Signing execution request...");
       const timestamp = Math.floor(Date.now() / 1000);
+      const buyerAddress =
+        (address as `0x${string}` | undefined) ?? "0x000000000000000000000000000000000000dEaD";
+      const effectiveEntitlementId = entitlementId ?? agent.tokenId;
       const message = buildExecutionMessage({
-        buyerAddress: address,
+        buyerAddress,
         tokenId: BigInt(agent.tokenId),
-        entitlementId: BigInt(entitlementId),
+        entitlementId: BigInt(effectiveEntitlementId),
         prompt,
         timestamp,
         chainId: frontendConfig.chainId
       });
-      const signature = await signMessageAsync({ message });
+      const signature = isDemoMode ? ("0x00" as `0x${string}`) : await signMessageAsync({ message });
       setStatus("Calling backend executor...");
       const result = await executeAgentRequest({
         tokenId: agent.tokenId,
-        entitlementId,
-        buyerAddress: address,
+        entitlementId: effectiveEntitlementId,
+        buyerAddress,
         prompt,
         signature,
         timestamp
@@ -148,23 +152,26 @@ export function PromptExecutor({
     <div className="stack">
       <section className="panel">
         <h2 className="panelTitle">Usage Flow</h2>
+        {isDemoMode ? <p className="small">Demo mode bypasses on-chain payment and signature checks so you can preview the app without deployment.</p> : null}
         <div className="field">
           <label htmlFor="prompt">Prompt</label>
           <textarea id="prompt" className="textarea" value={prompt} onChange={(event) => setPrompt(event.target.value)} />
         </div>
         <div className="row" style={{ marginTop: 14 }}>
-          <button className="button buttonAccent" disabled={pending || agent.usagePrice === "0"} onClick={handlePayForUsage}>
-            {pending ? "Working..." : "Pay For Usage"}
-          </button>
+          {!isDemoMode ? (
+            <button className="button buttonAccent" disabled={pending || agent.usagePrice === "0"} onClick={handlePayForUsage}>
+              {pending ? "Working..." : "Pay For Usage"}
+            </button>
+          ) : null}
           <button className="button" disabled={pending || !prompt.trim()} onClick={handleExecute}>
-            {pending ? "Working..." : "Execute Agent"}
+            {pending ? "Working..." : isDemoMode ? "Run Demo Agent" : "Execute Agent"}
           </button>
         </div>
-        <p className="small">Current tracked entitlement: {entitlementId ?? "none"}</p>
+        <p className="small">Current tracked entitlement: {isDemoMode ? `demo-${agent.tokenId}` : entitlementId ?? "none"}</p>
         <p className={`statusText ${/fail|error/i.test(status) ? "errorText" : ""}`}>{status}</p>
       </section>
 
-      {isOwner ? (
+      {!isDemoMode && isOwner ? (
         <section className="panel">
           <h2 className="panelTitle">Owner Controls</h2>
           <div className="field">
@@ -254,7 +261,7 @@ export function PromptExecutor({
         </section>
       ) : null}
 
-      {agent.isListed ? (
+      {!isDemoMode && agent.isListed ? (
         <section className="panel">
           <h2 className="panelTitle">Purchase Agent</h2>
           <p className="small">Buying transfers ownership immediately and invalidates the listing once the transaction settles.</p>

@@ -1,0 +1,14 @@
+{
+  "chainId": 10143,
+  "rpcUrl": "https://testnet-rpc.monad.xyz",
+  "deployerAddress": "0xCe846C91D5B2E1C983C6590c9fCAEB287B35e64c",
+  "finalizerAddress": "0xCe846C91D5B2E1C983C6590c9fCAEB287B35e64c",
+  "agentNftAddress": "0x70A41763F71772f394197B9A910fDA4A487e1C53",
+  "agentMarketplaceAddress": "0xC66e2F1da54875D01d112120f884c879B345116b",
+  "authorizedUsageRecorder": "0xC66e2F1da54875D01d112120f884c879B345116b",
+  "marketplaceFinalizer": "0xCe846C91D5B2E1C983C6590c9fCAEB287B35e64c",
+  "marketplaceOwner": "0xCe846C91D5B2E1C983C6590c9fCAEB287B35e64c",
+  "tokenName": "Monad Agents",
+  "tokenSymbol": "AGENT",
+  "deployedAt": "2026-03-28T09:39:59.897Z"
+}

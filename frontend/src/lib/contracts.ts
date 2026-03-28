@@ -1,5 +1,3 @@
-"use client";
-
 export const agentNftAbi = [
   {
     type: "function",
@@ -68,15 +66,33 @@ export const marketplaceAbi = [
   }
 ] as const;
 
+function readEnv(value: string | undefined, fallback: string) {
+  if (!value) return fallback;
+
+  const trimmed = value.trim();
+  if (!trimmed || trimmed === "undefined" || trimmed === "null") {
+    return fallback;
+  }
+
+  return trimmed;
+}
+
 export const frontendConfig = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Monad Agent Marketplace",
-  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL ?? "http://127.0.0.1:8545",
-  chainId: Number(process.env.NEXT_PUBLIC_CHAIN_ID ?? "31337"),
+  demoMode: readEnv(process.env.NEXT_PUBLIC_DEMO_MODE, "false") === "true",
+  appName: readEnv(process.env.NEXT_PUBLIC_APP_NAME, "Monad Agent Marketplace"),
+  rpcUrl: readEnv(process.env.NEXT_PUBLIC_RPC_URL, "http://127.0.0.1:8545"),
+  chainId: Number(readEnv(process.env.NEXT_PUBLIC_CHAIN_ID, "31337")),
   agentNftAddress:
-    (process.env.NEXT_PUBLIC_AGENT_NFT_ADDRESS as `0x${string}` | undefined) ??
+    (readEnv(
+      process.env.NEXT_PUBLIC_AGENT_NFT_ADDRESS as `0x${string}` | undefined,
+      "0x0000000000000000000000000000000000000000"
+    ) as `0x${string}`) ??
     "0x0000000000000000000000000000000000000000",
   agentMarketplaceAddress:
-    (process.env.NEXT_PUBLIC_AGENT_MARKETPLACE_ADDRESS as `0x${string}` | undefined) ??
+    (readEnv(
+      process.env.NEXT_PUBLIC_AGENT_MARKETPLACE_ADDRESS as `0x${string}` | undefined,
+      "0x0000000000000000000000000000000000000000"
+    ) as `0x${string}`) ??
     "0x0000000000000000000000000000000000000000",
-  backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3001"
+  backendUrl: readEnv(process.env.NEXT_PUBLIC_BACKEND_URL, "http://localhost:3001")
 } as const;

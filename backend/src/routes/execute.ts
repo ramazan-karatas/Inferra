@@ -28,16 +28,18 @@ executeRouter.post("/", async (req, res) => {
   const payload = parsed.data;
 
   try {
-    await verifyExecuteSignature({
-      buyerAddress: payload.buyerAddress,
-      tokenId: payload.tokenId,
-      entitlementId: payload.entitlementId,
-      prompt: payload.prompt,
-      timestamp: payload.timestamp,
-      signature: payload.signature,
-      chainId: config.chainId,
-      maxAgeSeconds: config.executeMessageTtlSeconds
-    });
+    if (!config.demoMode) {
+      await verifyExecuteSignature({
+        buyerAddress: payload.buyerAddress,
+        tokenId: payload.tokenId,
+        entitlementId: payload.entitlementId,
+        prompt: payload.prompt,
+        timestamp: payload.timestamp,
+        signature: payload.signature,
+        chainId: config.chainId,
+        maxAgeSeconds: config.executeMessageTtlSeconds
+      });
+    }
 
     const [agent, entitlementValid] = await Promise.all([
       readAgentCard(Number(payload.tokenId)),

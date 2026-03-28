@@ -28,6 +28,7 @@ export type SeededAgentDefinition = {
   fallbackName: string;
   fallbackDescription: string;
   fallbackCategory: string;
+  fallbackPromptHint?: string;
   systemPrompt: string;
 };
 

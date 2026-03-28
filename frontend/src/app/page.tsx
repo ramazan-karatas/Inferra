@@ -14,6 +14,9 @@ export default async function HomePage() {
           {frontendConfig.appName} turns prompt-based AI agents into on-chain assets with visible ownership, sale
           state, pay-per-use pricing, and trust counters. Rights stay on-chain. Execution stays off-chain.
         </p>
+        {frontendConfig.demoMode ? (
+          <p className="small">Demo mode is active. The UI is running without deployed contracts or an OpenAI key.</p>
+        ) : null}
         <div className="heroMetrics">
           <div className="metric">
             <span className="metricValue">{agents.length}</span>

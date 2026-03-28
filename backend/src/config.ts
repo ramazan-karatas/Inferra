@@ -3,6 +3,10 @@ import "dotenv/config";
 import { z } from "zod";
 
 const envSchema = z.object({
+  DEMO_MODE: z
+    .string()
+    .optional()
+    .transform((value) => value === "true"),
   PORT: z.coerce.number().int().positive().default(3001),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
   RPC_URL: z.string().url(),
@@ -20,6 +24,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 
 export const config = {
+  demoMode: env.DEMO_MODE,
   port: env.PORT,
   corsOrigin: env.CORS_ORIGIN,
   rpcUrl: env.RPC_URL,

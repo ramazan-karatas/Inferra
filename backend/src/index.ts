@@ -1,5 +1,6 @@
 import cors from "cors";
 import express from "express";
+import type { Server } from "node:http";
 
 import { config } from "./config.js";
 import { agentsRouter } from "./routes/agents.js";
@@ -22,6 +23,17 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
   res.status(500).json({ error: message });
 });
 
-app.listen(config.port, () => {
+const server: Server = app.listen(config.port, () => {
   console.log(`Backend listening on http://localhost:${config.port}`);
+});
+
+server.on("error", (error: NodeJS.ErrnoException) => {
+  if (error.code === "EADDRINUSE") {
+    console.error(
+      `Port ${config.port} is already in use. Stop the existing process or change PORT in backend/.env and NEXT_PUBLIC_BACKEND_URL in frontend/.env.local.`
+    );
+    process.exit(1);
+  }
+
+  throw error;
 });

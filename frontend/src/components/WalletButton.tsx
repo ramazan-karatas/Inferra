@@ -1,6 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { frontendConfig } from "../lib/contracts";
 
 function shortenAddress(address?: string) {
   if (!address) return "Connect Wallet";
@@ -12,6 +13,10 @@ export function WalletButton() {
   const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const injectedConnector = connectors[0];
+
+  if (frontendConfig.demoMode) {
+    return <button className="button buttonGhost">Demo Mode</button>;
+  }
 
   if (isConnected) {
     return (
