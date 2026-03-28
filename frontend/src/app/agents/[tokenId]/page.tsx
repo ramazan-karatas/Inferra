@@ -26,7 +26,7 @@ export default async function AgentDetailPage({
 
     return (
       <main className="container">
-        <div className="row" style={{ marginBottom: 16 }}>
+        <div className="row backRow">
           <Link className="button buttonGhost" href="/">
             Back to Marketplace
           </Link>
@@ -34,9 +34,7 @@ export default async function AgentDetailPage({
 
         <section className="panel stack">
           <p className="eyebrow">Agent Unavailable</p>
-          <h1 className="heroTitle" style={{ fontSize: "clamp(2rem, 3.5vw, 3.6rem)", maxWidth: "14ch" }}>
-            The detail service did not respond.
-          </h1>
+          <h1 className="heroTitle detailTitle">The detail service did not respond.</h1>
           <p className="heroBody">
             The frontend could not load agent #{parsedTokenId} from {frontendConfig.backendUrl}. If the backend was just
             started, wait a moment and refresh.

@@ -21,7 +21,7 @@ export function WalletButton() {
   }, []);
 
   if (frontendConfig.demoMode) {
-    return <button className="button buttonGhost">Demo Mode</button>;
+    return <button className="button buttonGhost">Preview Mode</button>;
   }
 
   if (!mounted) {

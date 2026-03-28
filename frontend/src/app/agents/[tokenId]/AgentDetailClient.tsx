@@ -20,7 +20,7 @@ export function AgentDetailClient({ initialAgent }: { initialAgent: AgentCard })
 
   return (
     <main className="container">
-      <div className="row" style={{ marginBottom: 16 }}>
+      <div className="row backRow">
         <Link className="button buttonGhost" href="/">
           Back to Marketplace
         </Link>
@@ -28,21 +28,29 @@ export function AgentDetailClient({ initialAgent }: { initialAgent: AgentCard })
 
       <div className="detailLayout">
         <section className="stack">
-          <div className="panel">
+          <div className="panel detailHero">
             <p className="eyebrow">{agent.category}</p>
-            <h1 className="heroTitle" style={{ fontSize: "clamp(2rem, 3.5vw, 3.6rem)", maxWidth: "14ch" }}>
-              {agent.name}
-            </h1>
+            <h1 className="heroTitle detailTitle">{agent.name}</h1>
             <p className="heroBody">{agent.description}</p>
             <div className="pillRow" style={{ marginTop: 14 }}>
               <span className="pill">Agent Key {agent.agentKey}</span>
               <span className="pill">Version {agent.version}</span>
               <span className={`pill ${agent.isActive ? "pillOk" : "pillWarn"}`}>{agent.isActive ? "Active" : "Inactive"}</span>
             </div>
+            <div className="detailSummary">
+              <div className="summaryBlock">
+                <span className="summaryLabel">Sale Status</span>
+                <span className="summaryValue">{agent.isListed ? "Listed for purchase" : "Not currently listed"}</span>
+              </div>
+              <div className="summaryBlock">
+                <span className="summaryLabel">Usage Price</span>
+                <span className="summaryValue">{agent.usagePrice === "0" ? "Unset" : `${(Number(agent.usagePrice) / 1e18).toFixed(4)} MON`}</span>
+              </div>
+            </div>
           </div>
 
           <div className="panel">
-            <h2 className="panelTitle">Trust Counters</h2>
+            <h2 className="panelTitle">Performance Snapshot</h2>
             <AgentStats agent={agent} />
           </div>
 

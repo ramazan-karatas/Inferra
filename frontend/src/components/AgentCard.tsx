@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import type { AgentCard as AgentCardType } from "../types";
 import { AgentStats } from "./AgentStats";
@@ -8,9 +9,21 @@ function shortenAddress(address: string) {
 }
 
 export function AgentCard({ agent }: { agent: AgentCardType }) {
+  const tones = [
+    "rgba(98, 228, 255, 0.48)",
+    "rgba(255, 155, 106, 0.42)",
+    "rgba(121, 240, 176, 0.4)",
+    "rgba(157, 140, 255, 0.38)"
+  ];
+  const artStyle = {
+    ["--card-tone" as string]: tones[agent.tokenId % tones.length]
+  } as CSSProperties;
+
   return (
     <article className="card">
-      <div className="cardImage" />
+      <div className="cardImage" style={artStyle}>
+        <span className="cardImageBadge">Agent #{agent.tokenId}</span>
+      </div>
       <div className="cardHeader">
         <div>
           <p className="eyebrow">{agent.category}</p>
@@ -18,7 +31,6 @@ export function AgentCard({ agent }: { agent: AgentCardType }) {
         </div>
         <div className={`pill ${agent.isActive ? "pillOk" : "pillWarn"}`}>{agent.isActive ? "Active" : "Inactive"}</div>
       </div>
-      <p className="cardBody">{agent.description}</p>
       <div className="pillRow">
         <span className="pill">Owner {shortenAddress(agent.owner)}</span>
         <span className="pill">v{agent.version}</span>
@@ -27,7 +39,7 @@ export function AgentCard({ agent }: { agent: AgentCardType }) {
       <AgentStats agent={agent} />
       <div className="row">
         <Link className="button buttonAccent" href={`/agents/${agent.tokenId}`}>
-          View Details
+          Open Agent
         </Link>
       </div>
     </article>
