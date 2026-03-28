@@ -1,0 +1,561 @@
+{
+  "system_prompt": {
+    "role": "system",
+    "content": "You are a senior hackathon engineer, pragmatic blockchain architect, and MVP-focused full-stack builder. Your job is to implement a Monad-based AI agent marketplace MVP. Optimize for speed, clarity, demo quality, and a credible protocol narrative. Do not over-engineer. Do not build a production-grade startup stack. Prefer the smallest architecture that demonstrates the core idea end-to-end. Always explain tradeoffs briefly and choose the simplest viable option."
+  },
+  "project_spec": {
+    "title": "Monad AI Agent Marketplace MVP",
+    "goal": "Build a hackathon MVP where AI agents are ownable, transferable, and monetizable digital assets. A creator can mint an agent as an NFT-like asset, list it for sale, another user can buy it, the new owner can set a price per use, and non-owners can pay for one execution request. The backend verifies payment entitlement, runs the off-chain AI agent, returns the output, and finalizes usage on-chain.",
+    "product_summary": {
+      "core_idea": "Turn AI agents into on-chain ownable assets with off-chain execution.",
+      "business_model": [
+        "ownership",
+        "transferability",
+        "resale",
+        "pay-per-request monetization",
+        "usage-based trust signals"
+      ],
+      "important_clarifications": [
+        "This is not just a generic NFT marketplace.",
+        "This is not just a generic AI SaaS wrapper.",
+        "This is a lightweight AI agent commerce layer where ownership and monetization are visible on-chain while AI execution stays off-chain."
+      ]
+    },
+    "scope": {
+      "in_scope": [
+        "Mint an AI agent as a unique ERC-721-style asset",
+        "Store lightweight agent metadata and trust counters",
+        "List agent for sale",
+        "Cancel listing",
+        "Buy listed agent with ownership transfer",
+        "Set usage price per agent",
+        "Pay once for one usage entitlement",
+        "Verify entitlement in backend before execution",
+        "Run off-chain AI execution for simple prompt-based agents",
+        "Return output to the paying user",
+        "Finalize usage on-chain",
+        "Update lightweight trust counters on-chain",
+        "Seed 2 or 3 simple demo agents",
+        "Clean demo UI with marketplace and agent detail views"
+      ],
+      "out_of_scope": [
+        "Time-based rental",
+        "Recurring subscriptions",
+        "Prepaid credit wallet systems",
+        "Upgradeable contracts",
+        "DAO governance",
+        "Dispute resolution",
+        "Multi-chain support",
+        "Advanced royalty systems",
+        "Token-bound accounts",
+        "Autonomous multi-agent systems",
+        "Decentralized inference",
+        "Heavy admin panels",
+        "Complex analytics",
+        "Advanced indexing infrastructure unless absolutely necessary",
+        "Refund systems",
+        "Retry queues",
+        "Off-chain databases unless required for the demo"
+      ],
+      "mvp_success_definition": [
+        "Wallet A mints an agent",
+        "Wallet A lists it for sale",
+        "Wallet B buys it",
+        "Ownership visibly changes",
+        "Wallet B sets usage price",
+        "Wallet C pays for one usage request",
+        "Backend verifies entitlement",
+        "Backend executes the selected AI agent off-chain",
+        "Wallet C receives the output",
+        "On-chain usage and trust counters update"
+      ]
+    },
+    "protocol_narrative": {
+      "erc_721_mapping": "Each AI agent is a unique asset with transferable ownership.",
+      "x402_mapping": "Use a lightweight pay-per-request model: one payment unlocks one execution entitlement. Do not claim full x402 implementation. Describe it as an x402-inspired micropayment flow.",
+      "erc_8004_mapping": "Use a lightweight on-chain trust layer with counters and agent status metadata. Do not claim full ERC-8004 compliance. Describe it as ERC-8004-inspired trust signals.",
+      "erc_8183_mapping": "Use a visible commerce lifecycle: select agent, pay for one use, verify entitlement, execute off-chain, finalize on-chain. Do not claim full ERC-8183 compliance. Describe it as an ERC-8183-inspired agent commerce lifecycle.",
+      "allowed_claims": [
+        "ERC-721-style ownership",
+        "x402-inspired pay-per-request flow",
+        "ERC-8004-inspired trust counters",
+        "ERC-8183-inspired agent commerce lifecycle"
+      ],
+      "forbidden_claims": [
+        "Full x402 compliance",
+        "Full ERC-8004 compliance",
+        "Full ERC-8183 compliance"
+      ]
+    },
+    "locked_technical_decisions": {
+      "chain": "Monad testnet or Monad-compatible dev environment",
+      "contract_count": 2,
+      "contracts": [
+        "AgentNFT",
+        "AgentMarketplace"
+      ],
+      "solidity_version": "0.8.24",
+      "contract_tooling": "Foundry preferred",
+      "frontend_stack": "Next.js preferred",
+      "backend_stack": "TypeScript with Express preferred",
+      "evm_client": "viem preferred",
+      "payment_asset": "native chain token only",
+      "sale_proceeds": "Agent sale payment goes directly to current seller in the buy transaction",
+      "usage_proceeds": "Usage payment goes directly to current owner in the payForUsage transaction",
+      "entitlement_model": "Each successful usage purchase creates a unique entitlementId associated with buyer address and tokenId",
+      "execute_auth": "Backend execute endpoint must require a wallet signature proving the caller controls the buyer address",
+      "finalizer_model": "A single backend finalizer address is authorized in the marketplace contract and can be updated by contract owner or deployer admin",
+      "listing_rule": "Marketplace purchase must fail if seller no longer owns the token",
+      "transfer_rule": "Any active listing must become invalid after ownership changes",
+      "failure_policy": "Execution failure still finalizes and consumes the entitlement, increments failure counters, and returns a clear error response",
+      "storage_policy": "No raw secrets, API keys, private prompts, or outputs are stored on-chain",
+      "backend_persistence": "Prefer stateless backend; use chain state as the main source of truth"
+    },
+    "deployment_defaults": {
+      "network_priority": "Build against a local Monad-compatible dev environment first, then verify against Monad testnet if available",
+      "frontend_wallet": "wagmi with a minimal wallet connector setup",
+      "metadata_schema_minimum": [
+        "name",
+        "description",
+        "category",
+        "image",
+        "promptHint"
+      ],
+      "admin_model": "Deployer remains admin for the MVP",
+      "ai_provider": "Use one OpenAI-compatible provider and one model only for the first implementation"
+    },
+    "architecture": {
+      "on_chain_responsibilities": [
+        "minting",
+        "ownership",
+        "listing state",
+        "purchase flow",
+        "usage pricing",
+        "per-request payment recording",
+        "one-shot entitlement recording",
+        "usage finalization record",
+        "trust counters"
+      ],
+      "off_chain_responsibilities": [
+        "AI prompt handling",
+        "model inference",
+        "routing to simple agent archetype",
+        "verifying payment entitlement before execution",
+        "verifying execute request signature",
+        "returning output to frontend",
+        "calling finalizeUsage after execution"
+      ],
+      "backend_role": "A minimal bridge between on-chain rights and off-chain AI execution.",
+      "frontend_role": "A minimal demo UI for wallet connection, marketplace browsing, asset purchase, pay-per-use, and output display.",
+      "contract_details": [
+        {
+          "name": "AgentNFT",
+          "purpose": [
+            "Represent each AI agent as a unique asset",
+            "Store agent-level metadata",
+            "Store lightweight trust and maintenance state"
+          ],
+          "fields": [
+            "tokenId",
+            "creator",
+            "metadataURI",
+            "agentKey or endpointHash",
+            "version",
+            "maintainer",
+            "usageCount",
+            "successCount",
+            "failureCount",
+            "isActive"
+          ],
+          "notes": [
+            "Use ERC-721 ownership for current owner",
+            "Do not store real secrets or raw private endpoints on-chain",
+            "Store only a hash or a non-sensitive backend identifier",
+            "Only the configured marketplace or another explicit authorized role may record usage counters"
+          ]
+        },
+        {
+          "name": "AgentMarketplace",
+          "purpose": [
+            "List agents for sale",
+            "Cancel listings",
+            "Buy listed agents",
+            "Set usage price",
+            "Accept one-shot usage payments",
+            "Record usage entitlements",
+            "Allow trusted backend finalizer to settle usage"
+          ],
+          "notes": [
+            "Keep commerce flow centralized in this contract",
+            "Favor simple storage and explicit events",
+            "Do not add unnecessary modules or fee logic"
+          ]
+        }
+      ]
+    },
+    "repo_plan": {
+      "style": "monorepo",
+      "folders": {
+        "contracts": {
+          "purpose": "Solidity contracts, deployment scripts, tests",
+          "suggested_structure": [
+            "contracts/src/AgentNFT.sol",
+            "contracts/src/AgentMarketplace.sol",
+            "contracts/script/Deploy.s.sol",
+            "contracts/test/AgentNFT.t.sol",
+            "contracts/test/AgentMarketplace.t.sol",
+            "contracts/README.md"
+          ]
+        },
+        "backend": {
+          "purpose": "Simple API for agent execution and on-chain settlement",
+          "suggested_structure": [
+            "backend/src/index.ts",
+            "backend/src/config.ts",
+            "backend/src/routes/agents.ts",
+            "backend/src/routes/execute.ts",
+            "backend/src/services/chain.ts",
+            "backend/src/services/agents.ts",
+            "backend/src/services/finalizer.ts",
+            "backend/src/lib/signature.ts",
+            "backend/src/types.ts",
+            "backend/.env.example"
+          ]
+        },
+        "frontend": {
+          "purpose": "Minimal demo interface",
+          "suggested_structure": [
+            "frontend/src/app or src/pages",
+            "frontend/src/components/AgentCard.tsx",
+            "frontend/src/components/WalletButton.tsx",
+            "frontend/src/pages/Marketplace.tsx",
+            "frontend/src/pages/AgentDetail.tsx",
+            "frontend/src/lib/contracts.ts",
+            "frontend/src/lib/wallet.ts",
+            "frontend/src/lib/api.ts"
+          ]
+        }
+      },
+      "repo_rule": "Keep structure conventional and small. Avoid extra packages and internal abstractions unless necessary."
+    },
+    "contract_requirements": {
+      "AgentNFT": {
+        "must_have_functions": [
+          "mintAgent",
+          "tokenURI",
+          "getAgentInfo",
+          "setAgentActiveStatus or equivalent",
+          "updateVersion or equivalent",
+          "updateMaintainer or equivalent",
+          "recordUsageResult or another restricted counter update entrypoint"
+        ],
+        "must_have_events": [
+          "AgentMinted",
+          "AgentStatusUpdated",
+          "AgentVersionUpdated",
+          "AgentMaintainerUpdated",
+          "AgentUsageRecorded"
+        ],
+        "design_rules": [
+          "Only include fields needed for MVP",
+          "Do not store raw prompts or outputs on-chain",
+          "Do not store private secrets on-chain",
+          "Make the marketplace or configured finalizer path explicit for usage recording"
+        ]
+      },
+      "AgentMarketplace": {
+        "must_have_functions": [
+          "listAgent",
+          "cancelListing",
+          "buyAgent",
+          "setUsagePrice",
+          "payForUsage",
+          "hasValidEntitlement or equivalent read function",
+          "finalizeUsage",
+          "setFinalizer or equivalent admin function"
+        ],
+        "must_have_events": [
+          "AgentListed",
+          "ListingCancelled",
+          "AgentPurchased",
+          "UsagePriceSet",
+          "UsageEntitlementPurchased",
+          "UsageFinalized"
+        ],
+        "design_rules": [
+          "One payment unlocks one usage right",
+          "Entitlement is keyed by entitlementId and consumed at finalization",
+          "Backend finalizer is restricted",
+          "Keep accounting simple and explicit",
+          "Listings must be rejected if ownership changed after listing"
+        ]
+      }
+    },
+    "contract_invariants": [
+      "Only the token owner can list an agent or set its usage price",
+      "A listed token cannot be purchased if the recorded seller no longer owns the token",
+      "One entitlement can be finalized exactly once",
+      "Finalization increments usageCount and exactly one of successCount or failureCount",
+      "Inactive agents cannot be executed through the backend"
+    ],
+    "backend_requirements": {
+      "preferred_stack": "Use the simplest stack you can implement quickly. TypeScript plus Express is preferred for speed.",
+      "required_endpoints": [
+        {
+          "method": "GET",
+          "path": "/agents",
+          "purpose": "Return known agents for UI convenience"
+        },
+        {
+          "method": "GET",
+          "path": "/agents/:tokenId",
+          "purpose": "Return enriched metadata and current trust stats"
+        },
+        {
+          "method": "POST",
+          "path": "/execute",
+          "purpose": "Verify buyer signature and entitlement, run selected agent, finalize usage, return output"
+        }
+      ],
+      "execute_request_schema": {
+        "required_fields": [
+          "tokenId",
+          "entitlementId",
+          "buyerAddress",
+          "prompt",
+          "signature"
+        ],
+        "signature_message_rule": "The backend must verify a signed message that includes buyerAddress, tokenId, entitlementId, and a freshness value such as timestamp or nonce."
+      },
+      "execution_flow": [
+        "Receive buyerAddress, tokenId, entitlementId, input prompt, and signature",
+        "Verify request signature",
+        "Read contract state",
+        "Verify buyer has a valid unused entitlement for tokenId and entitlementId",
+        "Check agent is active",
+        "Map tokenId or agentKey to backend agent logic",
+        "Execute prompt-based AI flow",
+        "On success, call finalizeUsage with success true",
+        "On failure, call finalizeUsage with success false",
+        "Return result or a clear error response"
+      ],
+      "backend_rules": [
+        "Do not build microservices",
+        "Do not add queues",
+        "Do not add auth beyond wallet signature verification needed for the demo",
+        "Use one service and keep it understandable"
+      ]
+    },
+    "frontend_requirements": {
+      "preferred_stack": "Use the fastest reasonable stack for a polished hackathon UI, such as Next.js with React.",
+      "pages": [
+        {
+          "name": "Marketplace",
+          "features": [
+            "Show available agents",
+            "Show owner",
+            "Show sale price",
+            "Show usage price",
+            "Link to details",
+            "Buy button if listed"
+          ]
+        },
+        {
+          "name": "Agent Detail",
+          "features": [
+            "Show metadata",
+            "Show version",
+            "Show maintainer",
+            "Show active or inactive status",
+            "Show usageCount, successCount, failureCount",
+            "Pay for usage button",
+            "Input prompt box",
+            "Execute button after payment flow",
+            "Output display"
+          ]
+        }
+      ],
+      "owner_controls": [
+        "List for sale",
+        "Cancel listing",
+        "Set usage price",
+        "Toggle active state",
+        "Optionally update metadata URI or version if easy"
+      ],
+      "frontend_rules": [
+        "Do not add extra screens unless needed",
+        "Use a clean demo-oriented layout",
+        "Focus on usability and obviousness during the live demo",
+        "Treat pay and execute as two explicit steps: one on-chain payment transaction followed by one backend execution request"
+      ]
+    },
+    "testing_requirements": {
+      "smart_contract_tests": [
+        "Mint stores correct metadata and creator",
+        "Only owner can list",
+        "Buy transfers ownership correctly",
+        "Owner can set usage price",
+        "User can buy one entitlement",
+        "Entitlement is visible before use",
+        "Only authorized finalizer can finalize",
+        "Entitlement is consumed after finalization",
+        "Counters update correctly for success",
+        "Counters update correctly for failure",
+        "Purchase fails if listing seller no longer owns the token",
+        "Listing becomes invalid after ownership transfer"
+      ],
+      "backend_checks": [
+        "Execute request fails when signature is invalid",
+        "Entitlement verification fails when unpaid",
+        "Execution fails cleanly when agent inactive",
+        "Successful run finalizes on-chain",
+        "Failure path finalizes on-chain with failure result"
+      ],
+      "frontend_checks": [
+        "Marketplace renders basic data",
+        "Buy flow can be triggered",
+        "Usage purchase flow can be triggered",
+        "Execute flow can be triggered after payment",
+        "Output is shown after execution"
+      ]
+    },
+    "demo_requirements": {
+      "seed_agents": [
+        "Research Agent",
+        "Marketing Copy Agent",
+        "Summarizer Agent"
+      ],
+      "demo_roles": [
+        "Wallet A is original creator and seller",
+        "Wallet B is buyer and new owner",
+        "Wallet C is end user paying for one execution"
+      ],
+      "demo_script": [
+        "Wallet A mints Research Agent",
+        "Wallet A lists it",
+        "Wallet B buys it",
+        "UI shows new owner",
+        "Wallet B sets usage price",
+        "Wallet C buys one entitlement",
+        "Wallet C signs execute request",
+        "Backend verifies signature and entitlement",
+        "Backend runs agent",
+        "Wallet C sees output",
+        "UI shows updated usage counters"
+      ],
+      "pitch_points": [
+        "ERC-721-style ownership makes agents ownable and transferable",
+        "x402-inspired payment model enables pay-per-request usage",
+        "ERC-8004-inspired trust counters create lightweight on-chain reputation signals",
+        "ERC-8183-inspired lifecycle gives a coherent agent commerce flow",
+        "On-chain rights plus off-chain AI execution is the correct MVP split"
+      ],
+      "readme_must_include": [
+        "How to run contracts, backend, and frontend",
+        "Environment variables",
+        "Protocol mapping and explicit non-claims",
+        "Known limitations",
+        "Step-by-step demo script"
+      ]
+    },
+    "acceptance_criteria": {
+      "done_definition": [
+        "Contracts deploy successfully to the chosen Monad-compatible environment",
+        "At least one seeded agent can be minted, listed, bought, priced for usage, and executed end-to-end",
+        "Backend refuses unsigned or invalidly signed execute requests",
+        "Frontend shows ownership, sale price, usage price, and counters accurately after transactions settle",
+        "README explains setup and demo flow without hidden steps"
+      ]
+    },
+    "coding_style_rules": {
+      "general": [
+        "Prefer minimal code over abstract frameworks",
+        "Use descriptive names",
+        "Add short comments only where they clarify architecture or non-obvious logic",
+        "Avoid speculative extensibility",
+        "Keep files small and focused"
+      ],
+      "solidity": [
+        "Prefer readability",
+        "Use custom errors or simple require messages consistently",
+        "Avoid premature gas micro-optimizations if they hurt clarity"
+      ],
+      "backend": [
+        "Keep request flow obvious",
+        "Centralize chain reads and writes cleanly",
+        "Do not hide core business logic behind too many layers"
+      ],
+      "frontend": [
+        "Keep state management simple",
+        "Favor directness over heavy architecture"
+      ]
+    },
+    "working_mode": {
+      "instruction": "Work strictly phase by phase. At the start of each phase, briefly restate the goal. Then produce only that phase's deliverable. Do not jump ahead. Do not produce giant code dumps without first freezing the design for that phase.",
+      "response_pattern": [
+        "Phase goal",
+        "Design choices",
+        "Tradeoffs briefly explained",
+        "Deliverable"
+      ]
+    },
+    "implementation_phases": [
+      {
+        "phase": 1,
+        "name": "Restate final MVP before coding",
+        "deliverable": "A short architecture and scope summary"
+      },
+      {
+        "phase": 2,
+        "name": "Design AgentNFT contract",
+        "deliverable": "Contract design notes before code"
+      },
+      {
+        "phase": 3,
+        "name": "Design AgentMarketplace contract",
+        "deliverable": "Contract design notes before code"
+      },
+      {
+        "phase": 4,
+        "name": "Implement smart contracts",
+        "deliverable": "Minimal clean Solidity implementation"
+      },
+      {
+        "phase": 5,
+        "name": "Write smart contract tests",
+        "deliverable": "Passing contract test suite"
+      },
+      {
+        "phase": 6,
+        "name": "Design backend API",
+        "deliverable": "API and execution flow spec"
+      },
+      {
+        "phase": 7,
+        "name": "Implement backend",
+        "deliverable": "Working backend service"
+      },
+      {
+        "phase": 8,
+        "name": "Implement simple agent archetypes",
+        "deliverable": "Small agent execution module"
+      },
+      {
+        "phase": 9,
+        "name": "Design frontend",
+        "deliverable": "UI flow plan"
+      },
+      {
+        "phase": 10,
+        "name": "Implement frontend",
+        "deliverable": "Minimal demo-ready frontend"
+      },
+      {
+        "phase": 11,
+        "name": "Demo preparation",
+        "deliverable": "Hackathon-ready demo package"
+      }
+    ],
+    "first_task_for_llm": "Start with Phase 1 only. Restate the exact MVP scope, list in-scope and out-of-scope items, restate the frozen architecture, restate the protocol narrative mapping, and explain why this complexity level is correct for a hackathon. Do not write code yet."
+  }
+}

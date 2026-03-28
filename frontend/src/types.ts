@@ -1,0 +1,20 @@
+export type AgentCard = {
+  tokenId: number;
+  name: string;
+  description: string;
+  category: string;
+  image: string;
+  promptHint: string;
+  owner: string;
+  creator: string;
+  isListed: boolean;
+  salePrice: string;
+  usagePrice: string;
+  usageCount: number;
+  successCount: number;
+  failureCount: number;
+  isActive: boolean;
+  version: string;
+  maintainer: string;
+  agentKey: string;
+};
