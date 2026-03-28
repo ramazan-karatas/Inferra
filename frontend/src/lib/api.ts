@@ -24,6 +24,19 @@ export type ExecuteResponse = {
   model?: string;
 };
 
+const RETRYABLE_STATUSES = new Set([408, 425, 429, 500, 502, 503, 504]);
+
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly url?: string
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 const fallbackAgents: AgentCard[] = [
   {
     tokenId: 1,
@@ -95,11 +108,48 @@ function getFallbackAgent(tokenId: number): AgentCard | undefined {
   return fallbackAgents.find((agent) => agent.tokenId === tokenId);
 }
 
+function isApiError(value: unknown): value is ApiError {
+  return value instanceof ApiError;
+}
+
+export function isApiErrorStatus(value: unknown, status: number) {
+  return isApiError(value) && value.status === status;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchJson<T>(url: string, init?: RequestInit, retries = 2): Promise<T> {
+  let attempt = 0;
+
+  while (attempt <= retries) {
+    try {
+      const response = await fetch(url, init);
+      if (response.ok) {
+        return (await response.json()) as T;
+      }
+
+      const error = new ApiError(`Request failed with status ${response.status}.`, response.status, url);
+      if (!RETRYABLE_STATUSES.has(response.status) || attempt === retries) {
+        throw error;
+      }
+    } catch (error) {
+      if (attempt === retries || isApiError(error)) {
+        throw error;
+      }
+    }
+
+    attempt += 1;
+    await sleep(250 * attempt);
+  }
+
+  throw new ApiError("Request failed.", undefined, url);
+}
+
 export async function fetchAgents(): Promise<AgentCard[]> {
   try {
-    const response = await fetch(`${frontendConfig.backendUrl}/agents`, { cache: "no-store" });
-    if (!response.ok) throw new Error("Failed to fetch agents.");
-    const data = (await response.json()) as AgentListResponse;
+    const data = await fetchJson<AgentListResponse>(`${frontendConfig.backendUrl}/agents`, { cache: "no-store" });
     return data.agents;
   } catch (error) {
     if (frontendConfig.demoMode) {
@@ -113,9 +163,9 @@ export async function fetchAgents(): Promise<AgentCard[]> {
 
 export async function fetchAgent(tokenId: number): Promise<AgentCard> {
   try {
-    const response = await fetch(`${frontendConfig.backendUrl}/agents/${tokenId}`, { cache: "no-store" });
-    if (!response.ok) throw new Error("Failed to fetch agent.");
-    const data = (await response.json()) as AgentDetailResponse;
+    const data = await fetchJson<AgentDetailResponse>(`${frontendConfig.backendUrl}/agents/${tokenId}`, {
+      cache: "no-store"
+    });
     return data.agent;
   } catch (error) {
     if (frontendConfig.demoMode) {
