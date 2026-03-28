@@ -14,7 +14,7 @@ const envSchema = z.object({
   AGENT_NFT_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   AGENT_MARKETPLACE_ADDRESS: z.string().regex(/^0x[a-fA-F0-9]{40}$/),
   FINALIZER_PRIVATE_KEY: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
-  AGENT_TOKEN_IDS: z.string().default("1,2,3"),
+  AGENT_TOKEN_IDS: z.string().optional(),
   EXECUTE_MESSAGE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
   OPENAI_BASE_URL: z.string().url().default("https://api.openai.com/v1"),
   OPENAI_API_KEY: z.string().optional(),
@@ -32,7 +32,8 @@ export const config = {
   agentNftAddress: env.AGENT_NFT_ADDRESS,
   agentMarketplaceAddress: env.AGENT_MARKETPLACE_ADDRESS,
   finalizerPrivateKey: env.FINALIZER_PRIVATE_KEY,
-  agentTokenIds: env.AGENT_TOKEN_IDS.split(",")
+  agentTokenIds: (env.AGENT_TOKEN_IDS ?? "")
+    .split(",")
     .map((value) => Number(value.trim()))
     .filter((value) => Number.isInteger(value) && value > 0),
   executeMessageTtlSeconds: env.EXECUTE_MESSAGE_TTL_SECONDS,

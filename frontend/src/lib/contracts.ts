@@ -1,6 +1,33 @@
 export const agentNftAbi = [
   {
     type: "function",
+    stateMutability: "view",
+    name: "getApproved",
+    inputs: [{ name: "tokenId", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }]
+  },
+  {
+    type: "function",
+    stateMutability: "view",
+    name: "isApprovedForAll",
+    inputs: [
+      { name: "ownerAddress", type: "address" },
+      { name: "operator", type: "address" }
+    ],
+    outputs: [{ name: "", type: "bool" }]
+  },
+  {
+    type: "function",
+    stateMutability: "nonpayable",
+    name: "approve",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "tokenId", type: "uint256" }
+    ],
+    outputs: []
+  },
+  {
+    type: "function",
     stateMutability: "nonpayable",
     name: "setAgentActiveStatus",
     inputs: [

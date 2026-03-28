@@ -80,7 +80,7 @@ DEPLOYER_PRIVATE_KEY=0x...
 AGENT_NFT_ADDRESS=0x...
 AGENT_MARKETPLACE_ADDRESS=0x...
 FINALIZER_PRIVATE_KEY=0x...
-AGENT_TOKEN_IDS=1,2,3
+AGENT_TOKEN_IDS=
 EXECUTE_MESSAGE_TTL_SECONDS=600
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_API_KEY=
@@ -90,7 +90,8 @@ OPENAI_MODEL=gpt-4o-mini
 Notes:
 - if `OPENAI_API_KEY` is empty, the backend returns deterministic demo fallback output
 - `FINALIZER_PRIVATE_KEY` must correspond to the address set as marketplace finalizer
-- `AGENT_TOKEN_IDS` should match the minted seeded agents
+- `AGENT_TOKEN_IDS` is optional and can be used to force-include specific token IDs
+- if left empty, the backend discovers minted tokens from `AgentNFT.nextTokenId`
 
 ### Frontend
 
@@ -183,8 +184,8 @@ Recommended seeded setup:
 - token `3`: Summarizer Agent
 
 Then update:
-- `backend/.env` with `AGENT_TOKEN_IDS=1,2,3`
 - `frontend/.env.local` with deployed addresses
+- optionally set `backend/.env` `AGENT_TOKEN_IDS` if you want to force-include specific token IDs
 
 ## Running The Stack
 

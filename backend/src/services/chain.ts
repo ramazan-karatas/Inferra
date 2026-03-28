@@ -172,7 +172,7 @@ export async function readAgentCard(tokenId: number): Promise<AgentCard> {
     return structuredClone(agent);
   }
 
-  const [ownerResult, agentInfo, listing, usagePrice] = await Promise.all([
+  const [ownerResult, agentInfo, listing, usagePrice, listingValidity] = await Promise.all([
     publicClient.readContract({
       address: config.agentNftAddress as `0x${string}`,
       abi: agentNftArtifact.abi,
@@ -196,6 +196,12 @@ export async function readAgentCard(tokenId: number): Promise<AgentCard> {
       abi: marketplaceArtifact.abi,
       functionName: "usagePrices",
       args: [BigInt(tokenId)]
+    }),
+    publicClient.readContract({
+      address: config.agentMarketplaceAddress as `0x${string}`,
+      abi: marketplaceArtifact.abi,
+      functionName: "isListingValid",
+      args: [BigInt(tokenId)]
     })
   ]);
 
@@ -206,8 +212,7 @@ export async function readAgentCard(tokenId: number): Promise<AgentCard> {
   const normalizedListing = normalizeListing(typedListing);
   const metadata = await readMetadata(normalizedInfo.metadataURI);
   const seeded = getSeededAgentDefinition(normalizedInfo.agentKey);
-  const isListingValid =
-    normalizedListing.active && normalizedListing.seller.toLowerCase() === owner.toLowerCase();
+  const isListingValid = listingValidity as boolean;
 
   return {
     tokenId,
@@ -236,7 +241,8 @@ export async function readAgents(): Promise<AgentCard[]> {
     return Array.from(mockAgentState.values()).map((agent) => structuredClone(agent));
   }
 
-  const cards = await Promise.allSettled(config.agentTokenIds.map((tokenId) => readAgentCard(tokenId)));
+  const tokenIds = await getTrackedTokenIds();
+  const cards = await Promise.allSettled(tokenIds.map((tokenId) => readAgentCard(tokenId)));
   return cards.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
 }
 
@@ -348,6 +354,24 @@ function normalizeListing(listing: ListingResult): NormalizedListing {
   }
 
   return listing as NormalizedListing;
+}
+
+async function getTrackedTokenIds(): Promise<number[]> {
+  const configuredIds = config.agentTokenIds;
+
+  try {
+    const nextTokenIdResult = await publicClient.readContract({
+      address: config.agentNftAddress as `0x${string}`,
+      abi: agentNftArtifact.abi,
+      functionName: "nextTokenId"
+    });
+
+    const nextTokenId = Number(nextTokenIdResult as bigint);
+    const discoveredIds = Array.from({ length: Math.max(nextTokenId - 1, 0) }, (_, index) => index + 1);
+    return Array.from(new Set([...configuredIds, ...discoveredIds])).sort((left, right) => left - right);
+  } catch {
+    return configuredIds;
+  }
 }
 
 export const usageFinalizedEvent = parseAbiItem(

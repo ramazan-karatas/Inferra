@@ -49,6 +49,48 @@ export function PromptExecutor({
     onAgentUpdate?.(nextAgent);
   }
 
+  async function ensureMarketplaceApproval() {
+    if (!publicClient || !address) {
+      throw new Error("Connect a wallet before listing.");
+    }
+
+    const tokenId = BigInt(agent.tokenId);
+    const [approvedAddress, approvedForAll] = await Promise.all([
+      publicClient.readContract({
+        address: frontendConfig.agentNftAddress,
+        abi: agentNftAbi,
+        functionName: "getApproved",
+        args: [tokenId]
+      }),
+      publicClient.readContract({
+        address: frontendConfig.agentNftAddress,
+        abi: agentNftAbi,
+        functionName: "isApprovedForAll",
+        args: [address, frontendConfig.agentMarketplaceAddress]
+      })
+    ]);
+
+    const normalizedApprovedAddress = (approvedAddress as string).toLowerCase();
+    const marketplaceAddress = frontendConfig.agentMarketplaceAddress.toLowerCase();
+    if (normalizedApprovedAddress === marketplaceAddress || (approvedForAll as boolean)) {
+      return;
+    }
+
+    setStatus("Approve the marketplace to transfer this agent, then confirm the listing.");
+    const approvalHash = await writeContractAsync({
+      address: frontendConfig.agentNftAddress,
+      abi: agentNftAbi,
+      functionName: "approve",
+      args: [frontendConfig.agentMarketplaceAddress, tokenId]
+    });
+
+    setStatus("Waiting for approval confirmation...");
+    const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash: approvalHash });
+    if (approvalReceipt.status !== "success") {
+      throw new Error("Marketplace approval transaction reverted.");
+    }
+  }
+
   async function runWrite(action: () => Promise<`0x${string}`>, successMessage: string) {
     try {
       setPending(true);
@@ -56,7 +98,10 @@ export function PromptExecutor({
       const hash = await action();
       setStatus("Waiting for transaction confirmation...");
       if (!publicClient) throw new Error("Public client unavailable.");
-      await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") {
+        throw new Error("Transaction reverted.");
+      }
       await refreshAgent();
       setStatus(successMessage);
     } catch (error) {
@@ -184,13 +229,15 @@ export function PromptExecutor({
               disabled={pending || !salePrice.trim()}
               onClick={() =>
                 runWrite(
-                  () =>
-                    writeContractAsync({
+                  async () => {
+                    await ensureMarketplaceApproval();
+                    return writeContractAsync({
                       address: frontendConfig.agentMarketplaceAddress,
                       abi: marketplaceAbi,
                       functionName: "listAgent",
                       args: [BigInt(agent.tokenId), toPriceValue(salePrice)]
-                    }),
+                    });
+                  },
                   "Listing updated."
                 )
               }
